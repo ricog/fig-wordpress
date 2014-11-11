@@ -1,0 +1,26 @@
+mysql:
+  image: mysql
+  environment:
+    MYSQL_ROOT_PASSWORD: password
+    MYSQL_USER: wordpress
+    MYSQL_PASSWORD: password
+    MYSQL_DATABASE: wordpress
+mysqlinit:
+  build: ./mysqlinit
+  links:
+    - mysql
+  command: sh -c 'sleep 10; exec mysql -h"$MYSQL_PORT_3306_TCP_ADDR" -P"$MYSQL_PORT_3306_TCP_PORT" -uroot -p"$MYSQL_ENV_MYSQL_ROOT_PASSWORD" wordpress < /database.sql'
+fpm:
+  build: ./php
+  volumes:
+    - /var/www
+  links:
+    - mysql
+web:
+  image: ricog/nginx
+  links:
+    - fpm
+  volumes_from:
+    - fpm
+  ports:
+    - "80:80"
